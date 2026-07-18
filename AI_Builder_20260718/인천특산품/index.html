@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -37,10 +38,39 @@
     <a href="#journey" data-i>인천의 여정</a>
     <a href="#islands" data-i>섬과 바다</a>
     <a href="#stores" data-i>판매처</a>
+    <a href="#booking" data-i>예약</a>
     <a href="#contact" data-i>문의</a>
   </nav>
+  <div class="nav__auth" id="navAuth">
+    <span class="nav__user" id="navUser" hidden></span>
+    <button class="nav__authbtn" id="btnLogin" type="button">로그인</button>
+    <button class="nav__authbtn nav__authbtn--ghost" id="btnLogout" type="button" hidden>로그아웃</button>
+  </div>
   <button class="nav__burger" id="burger" aria-label="메뉴"><span></span><span></span></button>
 </header>
+
+<!-- Auth modal -->
+<div class="auth-modal" id="authModal" hidden>
+  <div class="auth-modal__backdrop" data-close></div>
+  <div class="auth-modal__card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <button class="auth-modal__x" data-close aria-label="닫기">&times;</button>
+    <div class="auth-modal__cn">仁川</div>
+    <h3 class="auth-modal__title" id="authTitle">로그인</h3>
+    <p class="auth-modal__sub" id="authSub">인천 명품 회원으로 로그인하세요.</p>
+    <form class="auth-form" id="authForm">
+      <div class="field"><input type="email" id="authEmail" required placeholder=" " autocomplete="email" /><label>이메일</label></div>
+      <div class="field"><input type="password" id="authPassword" required minlength="6" placeholder=" " autocomplete="current-password" /><label>비밀번호 (6자 이상)</label></div>
+      <button class="btn btn--gold btn--wide" type="submit" id="authSubmit">로그인</button>
+    </form>
+    <div class="auth-or"><span>또는</span></div>
+    <button type="button" class="auth-google" id="btnGoogle">
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.28-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Google로 계속하기
+    </button>
+    <div class="auth-msg" id="authMsg" role="status"></div>
+    <div class="auth-toggle"><span id="authToggleText">계정이 없으신가요?</span> <button type="button" id="authToggle">회원가입</button></div>
+  </div>
+</div>
 
 <!-- Hero -->
 <section class="hero" id="home">
@@ -192,12 +222,46 @@
     <p class="stores__intro reveal">강화의 시장부터 소래포구 어시장까지 — 인천 특산을 직접 만나고 구매할 수 있는 대표 판매처를 지도에서 확인하세요.</p>
   </div>
   <div class="stores__wrap">
-    <div class="stores__map" id="kakaoMap">
+    <div class="stores__map">
+      <div id="storeMap"></div>
       <div class="stores__placeholder" id="mapPlaceholder">
         <span class="stores__ploader"></span>지도를 불러오는 중…
       </div>
     </div>
     <ul class="stores__list" id="storeList" aria-label="판매처 목록"></ul>
+  </div>
+</section>
+
+<!-- Reservation -->
+<section class="booking" id="booking">
+  <div class="section-head">
+    <div class="section-head__num">05</div>
+    <div class="section-head__label reveal">RESERVATION</div>
+    <h2 class="section-head__title reveal">방문·구매 <span class="serif-em">예약하기</span></h2>
+    <p class="booking__intro reveal">희망 날짜와 요청사항을 남겨 주세요. 로그인한 회원은 본인 예약 내역을 확인할 수 있습니다.</p>
+  </div>
+
+  <!-- 비로그인 안내 -->
+  <div class="booking__guest reveal" id="bookingGuest" hidden>
+    <div class="booking__lock">🔒</div>
+    <p>예약은 <b>로그인 후</b> 이용하실 수 있습니다.</p>
+    <button class="btn btn--gold" id="bookingLoginBtn" type="button">로그인 / 회원가입</button>
+  </div>
+
+  <!-- 로그인 시 -->
+  <div class="booking__wrap" id="bookingWrap" hidden>
+    <form class="booking__form" id="bookingForm">
+      <div class="field"><input type="text" id="bkName" required placeholder=" " /><label>이름</label></div>
+      <div class="field"><input type="tel" id="bkPhone" required placeholder=" " /><label>연락처</label></div>
+      <div class="field field--date"><label>희망 날짜</label><input type="date" id="bkDate" required /></div>
+      <div class="field field--full"><textarea id="bkNote" rows="3" placeholder=" "></textarea><label>요청사항</label></div>
+      <button class="btn btn--gold btn--wide" type="submit" id="bkSubmit">예약 신청</button>
+      <div class="booking__msg" id="bookingMsg" role="status"></div>
+    </form>
+    <div class="booking__mine">
+      <h3 class="booking__mine-title">내 예약</h3>
+      <ul class="booking__list" id="myResList"></ul>
+    </div>
   </div>
 </section>
 
@@ -232,6 +296,9 @@
   </div>
 </footer>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/main.js"></script>
+<script src="js/auth.js"></script>
 </body>
 </html>

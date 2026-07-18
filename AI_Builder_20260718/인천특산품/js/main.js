@@ -95,7 +95,7 @@
 })();
 
 /* ============================================================
-   판매처 지도 (Kakao Maps) — 키는 kakaomap.env 에서 로드
+   판매처 지도 (OpenStreetMap + Leaflet — API 키·도메인 등록 불필요)
    ============================================================ */
 (function () {
   'use strict';
@@ -123,11 +123,17 @@
   ];
 
   var listEl = document.getElementById('storeList');
-  var mapEl = document.getElementById('kakaoMap');
+  var mapEl = document.getElementById('storeMap');
   var placeholder = document.getElementById('mapPlaceholder');
   if (!mapEl || !listEl) return;
 
-  var markers = [], infowindows = [], kmap = null;
+  var map = null, markers = [];
+
+  function esc(s) {
+    return ('' + (s == null ? '' : s)).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
 
   // ---- 사이드 목록 렌더 ----
   STORES.forEach(function (s, i) {
@@ -135,10 +141,10 @@
     li.className = 'store';
     li.setAttribute('data-i', i);
     li.innerHTML =
-      '<div class="store__top"><span class="store__name">' + s.name + '</span>' +
-      '<span class="store__tag">' + s.tag + '</span></div>' +
-      '<p class="store__desc">' + s.desc + '</p>' +
-      '<div class="store__addr">' + s.addr + '</div>';
+      '<div class="store__top"><span class="store__name">' + esc(s.name) + '</span>' +
+      '<span class="store__tag">' + esc(s.tag) + '</span></div>' +
+      '<p class="store__desc">' + esc(s.desc) + '</p>' +
+      '<div class="store__addr">' + esc(s.addr) + '</div>';
     li.addEventListener('click', function () { focusStore(i); });
     listEl.appendChild(li);
   });
@@ -151,14 +157,12 @@
 
   function focusStore(i) {
     setActive(i);
-    if (!kmap) return;
+    if (!map) return;
     var s = STORES[i];
-    kmap.panTo(new kakao.maps.LatLng(s.lat, s.lng));
-    infowindows.forEach(function (iw) { iw.close(); });
-    infowindows[i].open(kmap, markers[i]);
+    map.setView([s.lat, s.lng], 13, { animate: true });
+    markers[i].openPopup();
   }
 
-  // ---- 안내 메시지 ----
   function showMsg(html, isErr) {
     if (!placeholder) return;
     placeholder.innerHTML = html;
@@ -168,60 +172,43 @@
 
   // ---- 지도 초기화 ----
   function initMap() {
+    if (!window.L) {
+      showMsg('지도 라이브러리를 불러오지 못했습니다.<br>네트워크(unpkg.com) 연결을 확인하세요.', true);
+      return;
+    }
     if (placeholder) placeholder.style.display = 'none';
-    kmap = new kakao.maps.Map(mapEl, {
-      center: new kakao.maps.LatLng(37.55, 126.62),
-      level: 9
-    });
-    kmap.addControl(new kakao.maps.ZoomControl(), kakao.maps.ControlPosition.RIGHT);
 
-    var bounds = new kakao.maps.LatLngBounds();
+    map = L.map(mapEl, { scrollWheelZoom: false }).setView([37.55, 126.62], 9);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var pin = L.divIcon({
+      className: 'map-pin', html: '<span></span>',
+      iconSize: [22, 22], iconAnchor: [11, 11], popupAnchor: [0, -12]
+    });
+
+    var bounds = [];
     STORES.forEach(function (s, i) {
-      var pos = new kakao.maps.LatLng(s.lat, s.lng);
-      bounds.extend(pos);
-      var marker = new kakao.maps.Marker({ map: kmap, position: pos, title: s.name });
-      var iw = new kakao.maps.InfoWindow({
-        content: '<div class="iw"><div class="iw__name">' + s.name + '</div>' +
-          '<span class="iw__tag">' + s.tag + '</span>' +
-          '<div class="iw__desc">' + s.desc + '</div>' +
-          '<div class="iw__addr">📍 ' + s.addr + '</div></div>',
-        removable: true
-      });
-      kakao.maps.event.addListener(marker, 'click', function () { focusStore(i); });
-      markers.push(marker);
-      infowindows.push(iw);
+      var m = L.marker([s.lat, s.lng], { icon: pin, title: s.name }).addTo(map);
+      m.bindPopup(
+        '<div class="iw"><div class="iw__name">' + esc(s.name) + '</div>' +
+        '<span class="iw__tag">' + esc(s.tag) + '</span>' +
+        '<div class="iw__desc">' + esc(s.desc) + '</div>' +
+        '<div class="iw__addr">📍 ' + esc(s.addr) + '</div></div>'
+      );
+      m.on('click', function () { setActive(i); });
+      markers.push(m);
+      bounds.push([s.lat, s.lng]);
     });
-    kmap.setBounds(bounds);
+    map.fitBounds(bounds, { padding: [40, 40] });
+    setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
-  // ---- Kakao SDK 동적 로드 ----
-  function loadSDK(key) {
-    var sc = document.createElement('script');
-    sc.src = 'https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=' +
-      encodeURIComponent(key) + '&libraries=services';
-    sc.onload = function () { kakao.maps.load(initMap); };
-    sc.onerror = function () {
-      showMsg('지도를 불러오지 못했습니다.<br>키가 올바른지, 카카오 개발자센터에 <b>도메인이 등록</b>되었는지 확인하세요.', true);
-    };
-    document.head.appendChild(sc);
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', initMap);
+  } else {
+    initMap();
   }
-
-  // ---- kakaomap.env 에서 키 읽기 ----
-  fetch('kakaomap.env', { cache: 'no-store' })
-    .then(function (r) { if (!r.ok) throw new Error('env not found'); return r.text(); })
-    .then(function (txt) {
-      var m = txt.match(/^\s*KAKAO_MAP(?:_API)?_KEY\s*=\s*(.+)\s*$/m);
-      var key = m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
-      if (!key || /여기에|YOUR|placeholder/i.test(key)) {
-        showMsg('<b>카카오맵 키가 필요합니다.</b><br>' +
-          '<code>kakaomap.env</code> 파일의 <code>KAKAO_MAP_KEY</code> 값을 실제 JavaScript 키로 교체하세요.<br>' +
-          '<a href="https://developers.kakao.com" target="_blank" rel="noopener">developers.kakao.com</a> 에서 발급', true);
-        return;
-      }
-      loadSDK(key);
-    })
-    .catch(function () {
-      showMsg('<b>환경설정 파일을 읽을 수 없습니다.</b><br>' +
-        'file:// 로 직접 열면 동작하지 않습니다. <b>로컬 서버</b>(예: VS Code Live Server)로 실행하세요.', true);
-    });
 })();
