@@ -36,6 +36,7 @@
     <a href="#products" data-i>명품 특산</a>
     <a href="#journey" data-i>인천의 여정</a>
     <a href="#islands" data-i>섬과 바다</a>
+    <a href="#stores" data-i>판매처</a>
     <a href="#contact" data-i>문의</a>
   </nav>
   <button class="nav__burger" id="burger" aria-label="메뉴"><span></span><span></span></button>
@@ -179,6 +180,24 @@
       <div class="stat reveal"><b data-count="100" data-suffix="%">0</b><span>인천의 진심</span></div>
     </div>
     <p class="islands__note reveal">덕적도의 모래해변, 백령도의 두무진, 자월도의 노을 — 인천의 섬은 저마다의 명품 풍경을 품고 여행자를 기다립니다.</p>
+  </div>
+</section>
+
+<!-- Stores / Map -->
+<section class="stores" id="stores">
+  <div class="section-head">
+    <div class="section-head__num">04</div>
+    <div class="section-head__label reveal">WHERE TO BUY</div>
+    <h2 class="section-head__title reveal">인천 명품을 <span class="serif-em">만나는 곳</span></h2>
+    <p class="stores__intro reveal">강화의 시장부터 소래포구 어시장까지 — 인천 특산을 직접 만나고 구매할 수 있는 대표 판매처를 지도에서 확인하세요.</p>
+  </div>
+  <div class="stores__wrap">
+    <div class="stores__map" id="kakaoMap">
+      <div class="stores__placeholder" id="mapPlaceholder">
+        <span class="stores__ploader"></span>지도를 불러오는 중…
+      </div>
+    </div>
+    <ul class="stores__list" id="storeList" aria-label="판매처 목록"></ul>
   </div>
 </section>
 
