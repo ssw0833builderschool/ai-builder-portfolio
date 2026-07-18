@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>진료 예약 — 하늘연합병원</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+
+  :root{
+    --navy:#0a1f33;
+    --navy-deep:#061420;
+    --blue:#1f6fe5;
+    --blue-light:#4f9cff;
+    --teal:#12b5a5;
+    --gray-bg:#f5f7f9;
+    --text-dark:#141a1f;
+    --text-mid:#5c6b77;
+    --text-light:#8a97a1;
+    --border:#e6eaee;
+    --white:#ffffff;
+    --danger:#e5484d;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    font-family:'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color:var(--text-dark);
+    background:var(--gray-bg);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{ text-decoration:none; color:inherit; }
+  ul{ list-style:none; }
+  button{ font-family:inherit; cursor:pointer; }
+
+  .container{ max-width:960px; margin:0 auto; padding:0 24px; }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky; top:0; z-index:100;
+    background:rgba(255,255,255,0.94);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);
+  }
+  .nav-wrap{
+    max-width:1180px; margin:0 auto; padding:0 32px;
+    height:70px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .logo{ font-size:20px; font-weight:900; letter-spacing:0.3px; color:var(--navy); display:flex; align-items:center; gap:9px; }
+  .logo .mark{
+    width:30px; height:30px; border-radius:9px;
+    background:linear-gradient(135deg, var(--blue), var(--teal));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:17px; font-weight:900;
+  }
+  .logo span{ color:var(--blue); }
+  nav ul{ display:flex; gap:34px; }
+  nav a{ font-size:14.5px; font-weight:500; color:var(--text-mid); transition:color .2s; }
+  nav a:hover{ color:var(--blue); }
+  .nav-tel{
+    padding:9px 18px; border:1.5px solid var(--navy); border-radius:30px;
+    font-size:13.5px; font-weight:700; color:var(--navy);
+  }
+  @media (max-width:760px){ nav ul{ display:none; } }
+
+  /* ---------- Page hero ---------- */
+  .page-hero{
+    background:
+      radial-gradient(circle at 85% 15%, rgba(79,156,255,0.28), transparent 55%),
+      linear-gradient(150deg, var(--navy-deep), var(--navy) 60%, #123a5e);
+    color:#fff; padding:56px 0 44px; text-align:center;
+  }
+  .page-hero .eyebrow{
+    display:inline-block; font-size:12px; font-weight:700; letter-spacing:2px;
+    color:var(--blue-light); text-transform:uppercase; margin-bottom:16px;
+    padding:5px 15px; border:1px solid rgba(79,156,255,0.4); border-radius:30px;
+  }
+  .page-hero h1{ font-size:36px; font-weight:900; letter-spacing:-0.5px; margin-bottom:12px; }
+  .page-hero p{ font-size:15.5px; color:rgba(255,255,255,0.72); font-weight:300; }
+
+  /* ---------- Stepper ---------- */
+  .stepper{
+    display:flex; justify-content:center; gap:0; margin:-24px auto 0;
+    max-width:640px; background:#fff; border:1px solid var(--border);
+    border-radius:14px; padding:18px 10px; box-shadow:0 10px 30px rgba(10,31,51,0.06);
+    position:relative; z-index:5;
+  }
+  .step{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; position:relative; }
+  .step:not(:last-child)::after{
+    content:""; position:absolute; top:15px; left:calc(50% + 20px); right:calc(-50% + 20px);
+    height:2px; background:var(--border);
+  }
+  .step.done:not(:last-child)::after{ background:var(--blue); }
+  .step .dot{
+    width:32px; height:32px; border-radius:50%; background:var(--gray-bg);
+    color:var(--text-light); border:2px solid var(--border);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;
+    position:relative; z-index:2; transition:all .25s;
+  }
+  .step.active .dot{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .step.done .dot{ background:var(--blue); border-color:var(--blue); color:#fff; }
+  .step .label{ font-size:12.5px; font-weight:500; color:var(--text-light); }
+  .step.active .label, .step.done .label{ color:var(--navy); font-weight:700; }
+
+  /* ---------- Form card ---------- */
+  main{ padding:40px 0 90px; }
+  .card{
+    background:#fff; border:1px solid var(--border); border-radius:16px;
+    padding:38px 40px; margin-bottom:24px;
+  }
+  .card > .card-head{ margin-bottom:26px; }
+  .card-head .tag{ font-size:12px; font-weight:700; letter-spacing:1.5px; color:var(--blue); text-transform:uppercase; }
+  .card-head h2{ font-size:22px; font-weight:900; color:var(--navy); margin-top:6px; }
+  .card-head p{ font-size:14px; color:var(--text-mid); margin-top:6px; }
+
+  .field{ margin-bottom:22px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label{ display:block; font-size:13.5px; font-weight:700; color:var(--navy); margin-bottom:9px; }
+  .field label .req{ color:var(--danger); margin-left:3px; }
+  .field input, .field select, .field textarea{
+    width:100%; padding:13px 15px; border:1.5px solid var(--border); border-radius:9px;
+    font-size:14.5px; font-family:inherit; color:var(--text-dark); background:#fff;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(31,111,229,0.12);
+  }
+  .field textarea{ resize:vertical; min-height:88px; }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:640px){ .field-row{ grid-template-columns:1fr; } .card{ padding:28px 22px; } }
+
+  /* department chips */
+  .dept-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+  @media (max-width:640px){ .dept-grid{ grid-template-columns:repeat(2,1fr); } }
+  .dept-chip{
+    border:1.5px solid var(--border); border-radius:11px; padding:16px 12px; text-align:center;
+    background:#fff; transition:all .2s; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .dept-chip:hover{ border-color:var(--blue-light); background:var(--gray-bg); }
+  .dept-chip.selected{ border-color:var(--blue); background:rgba(31,111,229,0.06); box-shadow:0 0 0 3px rgba(31,111,229,0.1); }
+  .dept-chip .ico{ font-size:22px; }
+  .dept-chip .name{ font-size:13.5px; font-weight:700; color:var(--navy); }
+
+  /* time slots */
+  .slot-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  @media (max-width:640px){ .slot-grid{ grid-template-columns:repeat(3,1fr); } }
+  .slot{
+    border:1.5px solid var(--border); border-radius:9px; padding:11px 6px; text-align:center;
+    font-size:13.5px; font-weight:600; color:var(--text-dark); background:#fff; transition:all .2s;
+  }
+  .slot:hover:not(:disabled){ border-color:var(--blue-light); }
+  .slot.selected{ border-color:var(--blue); background:var(--blue); color:#fff; }
+  .slot:disabled{ background:var(--gray-bg); color:var(--text-light); cursor:not-allowed; text-decoration:line-through; }
+
+  .hint{ font-size:12.5px; color:var(--text-light); margin-top:8px; }
+  .error-msg{ color:var(--danger); font-size:12.5px; margin-top:14px; display:none; font-weight:500; }
+
+  /* agree */
+  .agree{ display:flex; align-items:flex-start; gap:10px; background:var(--gray-bg); border-radius:10px; padding:15px 16px; }
+  .agree input{ width:18px; height:18px; margin-top:2px; accent-color:var(--blue); flex-shrink:0; }
+  .agree label{ font-size:13px; color:var(--text-mid); font-weight:400; margin:0; }
+  .agree a{ color:var(--blue); font-weight:600; text-decoration:underline; }
+
+  /* actions */
+  .actions{ display:flex; justify-content:space-between; gap:14px; }
+  .btn{
+    padding:15px 30px; border-radius:9px; font-size:15px; font-weight:700; border:none;
+    transition:all .2s; display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn-primary{ background:var(--blue); color:#fff; }
+  .btn-primary:hover{ background:var(--blue-light); transform:translateY(-1px); }
+  .btn-ghost{ background:#fff; color:var(--navy); border:1.5px solid var(--border); }
+  .btn-ghost:hover{ border-color:var(--navy); }
+  .btn.full{ width:100%; justify-content:center; }
+
+  /* summary sidebar-ish */
+  .summary{
+    background:linear-gradient(150deg, var(--navy), #123a5e); color:#fff;
+    border-radius:16px; padding:28px 30px; margin-bottom:24px;
+  }
+  .summary h3{ font-size:14px; font-weight:700; letter-spacing:1px; color:var(--blue-light); text-transform:uppercase; margin-bottom:18px; }
+  .summary-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.12); font-size:14px; }
+  .summary-row:last-child{ border-bottom:none; }
+  .summary-row .k{ color:rgba(255,255,255,0.6); }
+  .summary-row .v{ font-weight:700; }
+
+  /* confirmation */
+  .confirm{ text-align:center; padding:56px 40px; }
+  .confirm .check{
+    width:76px; height:76px; border-radius:50%; margin:0 auto 24px;
+    background:linear-gradient(135deg, var(--teal), var(--blue)); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:38px;
+    box-shadow:0 12px 30px rgba(18,181,165,0.35);
+  }
+  .confirm h2{ font-size:26px; font-weight:900; color:var(--navy); margin-bottom:10px; }
+  .confirm p{ font-size:15px; color:var(--text-mid); margin-bottom:28px; }
+  .confirm .receipt{
+    text-align:left; max-width:420px; margin:0 auto 30px; background:var(--gray-bg);
+    border-radius:12px; padding:22px 24px;
+  }
+  .confirm .receipt .summary-row{ border-color:var(--border); color:var(--text-dark); }
+  .confirm .receipt .summary-row .k{ color:var(--text-light); }
+  .confirm .code{
+    display:inline-block; font-size:13px; font-weight:700; letter-spacing:1px; color:var(--blue);
+    background:rgba(31,111,229,0.08); padding:6px 14px; border-radius:20px; margin-bottom:26px;
+  }
+
+  .hidden{ display:none; }
+
+  footer{ background:var(--navy-deep); color:rgba(255,255,255,0.5); padding:34px 0; text-align:center; font-size:12.5px; }
+  footer .container{ display:flex; flex-direction:column; gap:6px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-wrap">
+    <a href="index.html" class="logo"><span class="mark">H</span>하늘<span>연합병원</span></a>
+    <nav>
+      <ul>
+        <li><a href="#">병원소개</a></li>
+        <li><a href="#">진료과목</a></li>
+        <li><a href="#">의료진</a></li>
+        <li><a href="reservation.html">진료예약</a></li>
+      </ul>
+    </nav>
+    <a href="tel:1588-0000" class="nav-tel">📞 1588-0000</a>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Online Reservation</span>
+    <h1>진료 예약</h1>
+    <p>원하시는 진료과와 시간을 선택하시면 빠르게 예약을 도와드립니다.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="stepper" id="stepper">
+    <div class="step active" data-step="1"><div class="dot">1</div><div class="label">진료 선택</div></div>
+    <div class="step" data-step="2"><div class="dot">2</div><div class="label">날짜·시간</div></div>
+    <div class="step" data-step="3"><div class="dot">3</div><div class="label">환자 정보</div></div>
+    <div class="step" data-step="4"><div class="dot">4</div><div class="label">예약 완료</div></div>
+  </div>
+</div>
+
+<main>
+  <div class="container">
+
+    <!-- STEP 1: Department & Doctor -->
+    <section class="card" id="panel-1">
+      <div class="card-head">
+        <div class="tag">Step 1</div>
+        <h2>진료과와 담당 의료진을 선택하세요</h2>
+        <p>증상에 맞는 진료과를 고르시면 담당 의료진이 표시됩니다.</p>
+      </div>
+
+      <div class="field">
+        <label>진료과 <span class="req">*</span></label>
+        <div class="dept-grid" id="deptGrid">
+          <div class="dept-chip" data-dept="내과"><div class="ico">🩺</div><div class="name">내과</div></div>
+          <div class="dept-chip" data-dept="정형외과"><div class="ico">🦴</div><div class="name">정형외과</div></div>
+          <div class="dept-chip" data-dept="이비인후과"><div class="ico">👂</div><div class="name">이비인후과</div></div>
+          <div class="dept-chip" data-dept="피부과"><div class="ico">✨</div><div class="name">피부과</div></div>
+          <div class="dept-chip" data-dept="소아청소년과"><div class="ico">🧸</div><div class="name">소아청소년과</div></div>
+          <div class="dept-chip" data-dept="안과"><div class="ico">👁️</div><div class="name">안과</div></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="doctor">담당 의료진 <span class="req">*</span></label>
+        <select id="doctor" disabled>
+          <option value="">먼저 진료과를 선택하세요</option>
+        </select>
+      </div>
+
+      <div class="error-msg" id="err1">진료과와 담당 의료진을 모두 선택해 주세요.</div>
+
+      <div class="actions" style="margin-top:28px; justify-content:flex-end;">
+        <button class="btn btn-primary" onclick="goStep(2)">다음 단계 →</button>
+      </div>
+    </section>
+
+    <!-- STEP 2: Date & Time -->
+    <section class="card hidden" id="panel-2">
+      <div class="card-head">
+        <div class="tag">Step 2</div>
+        <h2>예약 날짜와 시간을 선택하세요</h2>
+        <p>진료 가능한 시간대만 선택할 수 있습니다.</p>
+      </div>
+
+      <div class="field">
+        <label for="date">예약 날짜 <span class="req">*</span></label>
+        <input type="date" id="date">
+        <p class="hint">일요일과 공휴일은 휴진입니다. 주말은 오전 진료만 가능합니다.</p>
+      </div>
+
+      <div class="field">
+        <label>예약 시간 <span class="req">*</span></label>
+        <div class="slot-grid" id="slotGrid">
+          <button class="slot" data-time="09:00">09:00</button>
+          <button class="slot" data-time="09:30">09:30</button>
+          <button class="slot" data-time="10:00">10:00</button>
+          <button class="slot" data-time="10:30">10:30</button>
+          <button class="slot" data-time="11:00">11:00</button>
+          <button class="slot" data-time="11:30">11:30</button>
+          <button class="slot" data-time="14:00">14:00</button>
+          <button class="slot" data-time="14:30">14:30</button>
+          <button class="slot" data-time="15:00">15:00</button>
+          <button class="slot" data-time="15:30">15:30</button>
+          <button class="slot" data-time="16:00">16:00</button>
+          <button class="slot" data-time="16:30">16:30</button>
+        </div>
+        <p class="hint">오전 09:00~11:30 · 오후 14:00~16:30 (점심시간 12:00~14:00 휴진)</p>
+      </div>
+
+      <div class="error-msg" id="err2">예약 날짜와 시간을 모두 선택해 주세요.</div>
+
+      <div class="actions" style="margin-top:28px;">
+        <button class="btn btn-ghost" onclick="goStep(1)">← 이전</button>
+        <button class="btn btn-primary" onclick="goStep(3)">다음 단계 →</button>
+      </div>
+    </section>
+
+    <!-- STEP 3: Patient info -->
+    <section class="card hidden" id="panel-3">
+      <div class="card-head">
+        <div class="tag">Step 3</div>
+        <h2>환자 정보를 입력하세요</h2>
+        <p>정확한 진료를 위해 정보를 정확히 입력해 주세요.</p>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="pname">이름 <span class="req">*</span></label>
+          <input type="text" id="pname" placeholder="홍길동">
+        </div>
+        <div class="field">
+          <label for="pbirth">생년월일 <span class="req">*</span></label>
+          <input type="date" id="pbirth">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="pphone">연락처 <span class="req">*</span></label>
+          <input type="tel" id="pphone" placeholder="010-0000-0000">
+        </div>
+        <div class="field">
+          <label for="pgender">성별</label>
+          <select id="pgender">
+            <option value="">선택 안 함</option>
+            <option value="남">남성</option>
+            <option value="여">여성</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="visit">방문 구분</label>
+        <select id="visit">
+          <option value="초진">초진 (처음 방문)</option>
+          <option value="재진">재진 (재방문)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="symptom">증상 / 요청사항</label>
+        <textarea id="symptom" placeholder="예) 3일 전부터 기침과 발열이 있습니다."></textarea>
+      </div>
+
+      <div class="field">
+        <div class="agree">
+          <input type="checkbox" id="agree">
+          <label for="agree">개인정보 수집·이용에 동의합니다. 입력하신 정보는 진료 예약 목적으로만 사용됩니다. <a href="#">자세히</a></label>
+        </div>
+      </div>
+
+      <div class="error-msg" id="err3">필수 항목을 모두 입력하고 개인정보 수집에 동의해 주세요.</div>
+
+      <div class="actions" style="margin-top:28px;">
+        <button class="btn btn-ghost" onclick="goStep(2)">← 이전</button>
+        <button class="btn btn-primary" onclick="submitReservation()">예약 확인 →</button>
+      </div>
+    </section>
+
+    <!-- STEP 4: Confirmation -->
+    <section class="card hidden" id="panel-4">
+      <div class="confirm">
+        <div class="check">✓</div>
+        <h2>예약이 완료되었습니다</h2>
+        <p>예약 정보가 입력하신 연락처로 문자 발송되었습니다.</p>
+        <div class="code" id="resCode">예약번호 —</div>
+        <div class="receipt" id="receipt"></div>
+        <button class="btn btn-primary full" onclick="resetAll()">새 예약하기</button>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    <div>하늘연합병원 · 서울특별시 강남구 테헤란로 000 · 대표전화 1588-0000</div>
+    <div>© 2026 하늘연합병원. 본 페이지는 학습용 데모입니다.</div>
+  </div>
+</footer>
+
+<script>
+  // ---- Data ----
+  const DOCTORS = {
+    "내과": ["김민수 과장 (소화기)", "이서연 전문의 (호흡기)"],
+    "정형외과": ["박지훈 과장 (척추)", "최다은 전문의 (관절)"],
+    "이비인후과": ["정우성 전문의"],
+    "피부과": ["한소희 전문의"],
+    "소아청소년과": ["오지호 과장", "임수정 전문의"],
+    "안과": ["강동원 전문의"]
+  };
+
+  const state = { dept:"", doctor:"", date:"", time:"", name:"", phone:"" };
+
+  // ---- Step 1: department selection ----
+  const deptGrid = document.getElementById('deptGrid');
+  const doctorSel = document.getElementById('doctor');
+  deptGrid.querySelectorAll('.dept-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      deptGrid.querySelectorAll('.dept-chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      state.dept = chip.dataset.dept;
+      // populate doctors
+      doctorSel.innerHTML = '<option value="">담당 의료진을 선택하세요</option>';
+      DOCTORS[state.dept].forEach(d => {
+        const o = document.createElement('option');
+        o.value = d; o.textContent = d;
+        doctorSel.appendChild(o);
+      });
+      doctorSel.disabled = false;
+      state.doctor = "";
+    });
+  });
+  doctorSel.addEventListener('change', e => state.doctor = e.target.value);
+
+  // ---- Step 2: date + time ----
+  const dateInput = document.getElementById('date');
+  const slotGrid = document.getElementById('slotGrid');
+  // min = today
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.min = today;
+
+  dateInput.addEventListener('change', () => {
+    state.date = dateInput.value;
+    state.time = ""; // reset time
+    slotGrid.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+    const day = new Date(dateInput.value + 'T00:00:00').getDay(); // 0=Sun,6=Sat
+    slotGrid.querySelectorAll('.slot').forEach(s => {
+      const hour = parseInt(s.dataset.time.split(':')[0], 10);
+      if (day === 0) { s.disabled = true; }          // 일요일 휴진
+      else if (day === 6) { s.disabled = hour >= 12; } // 토요일 오전만
+      else { s.disabled = false; }
+    });
+    document.getElementById('err2').style.display = 'none';
+    if (day === 0) alert('일요일은 휴진입니다. 다른 날짜를 선택해 주세요.');
+  });
+
+  slotGrid.querySelectorAll('.slot').forEach(slot => {
+    slot.addEventListener('click', () => {
+      if (slot.disabled) return;
+      slotGrid.querySelectorAll('.slot').forEach(s => s.classList.remove('selected'));
+      slot.classList.add('selected');
+      state.time = slot.dataset.time;
+    });
+  });
+
+  // ---- Navigation / validation ----
+  function setStepUI(n){
+    for (let i=1;i<=4;i++){
+      document.getElementById('panel-'+i).classList.toggle('hidden', i !== n);
+    }
+    document.querySelectorAll('#stepper .step').forEach(st => {
+      const s = parseInt(st.dataset.step,10);
+      st.classList.toggle('active', s === n);
+      st.classList.toggle('done', s < n);
+    });
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function goStep(n){
+    // validate forward transitions
+    if (n === 2){
+      if (!state.dept || !state.doctor){ document.getElementById('err1').style.display='block'; return; }
+      document.getElementById('err1').style.display='none';
+    }
+    if (n === 3){
+      if (!state.date || !state.time){ document.getElementById('err2').style.display='block'; return; }
+      document.getElementById('err2').style.display='none';
+    }
+    setStepUI(n);
+  }
+
+  function submitReservation(){
+    const name = document.getElementById('pname').value.trim();
+    const birth = document.getElementById('pbirth').value;
+    const phone = document.getElementById('pphone').value.trim();
+    const agree = document.getElementById('agree').checked;
+    if (!name || !birth || !phone || !agree){
+      document.getElementById('err3').style.display='block';
+      return;
+    }
+    document.getElementById('err3').style.display='none';
+    state.name = name; state.phone = phone;
+
+    // build receipt
+    const gender = document.getElementById('pgender').value;
+    const visit = document.getElementById('visit').value;
+    const symptom = document.getElementById('symptom').value.trim();
+    const code = 'HN-' + state.date.replace(/-/g,'').slice(2) + '-' +
+                 Math.floor(1000 + (Date.parse(state.date) % 9000));
+    document.getElementById('resCode').textContent = '예약번호 ' + code;
+
+    const rows = [
+      ['진료과', state.dept],
+      ['담당 의료진', state.doctor],
+      ['예약 일시', state.date + ' ' + state.time],
+      ['환자명', state.name + (gender ? ' ('+gender+')' : '')],
+      ['연락처', state.phone],
+      ['방문 구분', visit],
+    ];
+    if (symptom) rows.push(['증상', symptom]);
+    document.getElementById('receipt').innerHTML = rows.map(r =>
+      `<div class="summary-row"><span class="k">${r[0]}</span><span class="v">${escapeHtml(r[1])}</span></div>`
+    ).join('');
+
+    setStepUI(4);
+  }
+
+  function resetAll(){
+    Object.keys(state).forEach(k => state[k] = "");
+    deptGrid.querySelectorAll('.dept-chip').forEach(c => c.classList.remove('selected'));
+    doctorSel.innerHTML = '<option value="">먼저 진료과를 선택하세요</option>';
+    doctorSel.disabled = true;
+    dateInput.value = "";
+    slotGrid.querySelectorAll('.slot').forEach(s => { s.classList.remove('selected'); s.disabled = false; });
+    ['pname','pbirth','pphone','symptom'].forEach(id => document.getElementById(id).value = "");
+    document.getElementById('pgender').value = "";
+    document.getElementById('visit').value = "초진";
+    document.getElementById('agree').checked = false;
+    setStepUI(1);
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+</script>
+
+</body>
+</html>
