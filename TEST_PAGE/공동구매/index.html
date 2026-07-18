@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반값공장 - 2인 공구</title>
+    <!-- Tailwind CSS CDN 사용 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 1단계: 테마별 CSS 변수 정의 -->
+    <style>
+        /* 기본 테마 (오렌지) */
+        :root {
+            --color-primary: #f97316; /* orange-500 */
+            --color-primary-hover: #ea580c; /* orange-600 */
+            --color-primary-light: #ffedd5; /* orange-100 */
+        }
+
+        /* 민트 테마 */
+        [data-theme="mint"] {
+            --color-primary: #10b981; /* emerald-500 */
+            --color-primary-hover: #059669; /* emerald-600 */
+            --color-primary-light: #ecfdf5; /* emerald-100 */
+        }
+
+        /* 퍼플 테마 */
+        [data-theme="purple"] {
+            --color-primary: #8b5cf6; /* violet-500 */
+            --color-primary-hover: #7c3aed; /* violet-600 */
+            --color-primary-light: #ede9fe; /* violet-100 */
+        }
+    </style>
+
+    <!-- 2단계: CSS 변수를 Tailwind 클래스로 연결 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'var(--color-primary)',
+                        'primary-hover': 'var(--color-primary-hover)',
+                        'primary-light': 'var(--color-primary-light)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 flex justify-center items-center min-h-screen">
+
+    <!-- 모바일 프레임 모크업 -->
+    <div class="w-full max-w-md bg-white min-h-screen shadow-2xl flex flex-col relative pb-24">
+        
+        <!-- 상단 헤더 -->
+        <header class="flex justify-between items-center p-4 border-b border-gray-100">
+            <span class="text-xl font-black text-primary tracking-wider">📦 반값공장</span>
+            <button onclick="alert('마이페이지로 이동합니다.')" class="text-sm font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">내 공구</button>
+        </header>
+
+        <!-- 수동 테마 선택 스위처 -->
+        <div class="px-4 py-2 bg-gray-50 border-b border-gray-100 flex items-center gap-2">
+            <span class="text-[10px] font-bold text-gray-400 uppercase">THEME</span>
+            <button onclick="setTheme('default')" class="w-5 h-5 rounded-full bg-orange-500 border-2 border-white ring-1 ring-orange-300"></button>
+            <button onclick="setTheme('mint')" class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white ring-1 ring-emerald-300"></button>
+            <button onclick="setTheme('purple')" class="w-5 h-5 rounded-full bg-violet-500 border-2 border-white ring-1 ring-violet-300"></button>
+        </div>
+
+        <!-- 오늘만 특가 타이머 배너 -->
+        <div class="bg-primary text-white text-center py-2 text-sm font-bold flex justify-center items-center gap-2">
+            <span>🚨 오늘만 특가! 마감까지</span>
+            <span id="timer" class="bg-white text-primary px-2 py-0.5 rounded text-xs font-mono">23:59:59</span>
+        </div>
+
+        <!-- 상품 이미지 -->
+        <div class="w-full h-64 overflow-hidden relative">
+            <img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=80" 
+                 alt="친환경 화장지 상품 이미지" 
+                 class="w-full h-full object-cover">
+            <span class="absolute top-3 left-3 bg-black bg-opacity-60 text-white text-[10px] font-bold px-2 py-1 rounded-md">공장 실물 사진</span>
+        </div>
+
+        <!-- 별점 리뷰 및 찜하기 하트 버튼 영역 -->
+        <div class="px-4 pt-4 flex justify-between items-center">
+            <div class="flex items-center gap-1">
+                <span class="text-yellow-400 text-base">★</span>
+                <span class="text-sm font-bold text-gray-800">4.9</span>
+                <span class="text-xs text-gray-400">(1,240개 리뷰)</span>
+                <span class="text-xs text-gray-300">|</span>
+                <span class="text-[11px] text-gray-500 font-medium">월 4.5만 개 판매 돌파</span>
+            </div>
+            <button id="like-btn" onclick="toggleLike()" class="text-gray-300 hover:text-red-500 transition-colors text-xl p-1 focus:outline-none">
+                🤍
+            </button>
+        </div>
+
+        <!-- 상품 세부 정보 -->
+        <div class="px-4 pb-4 pt-2">
+            <div class="text-xs text-primary font-bold mb-1">🚚 제지공장 직송 | 무료배송</div>
+            <h1 class="text-lg font-bold text-gray-800">[공구특가] 무형광 3겹 데코 화장지 30롤 x 2팩 (총 60롤)</h1>
+            
+            <div class="mt-2 flex items-baseline gap-2">
+                <span class="text-gray-400 line-through text-sm">29,800원</span>
+                <span class="text-2xl font-black text-primary">14,900원</span>
+                <span class="text-xs bg-primary-light text-primary px-1.5 py-0.5 rounded font-bold">50% 반값</span>
+            </div>
+        </div>
+
+        <hr class="border-gray-100">
+
+        <!-- 실시간 대기열 영역 -->
+        <div class="p-4">
+            <h3 class="text-sm font-bold text-gray-700 mb-3">👥 지금 참여 가능한 공구방 (바로 참여 시 배송 출발!)</h3>
+            <div class="space-y-2">
+                <!-- 대기열 카드 1 -->
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold">도비</div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-700">일산도비 님의 공구</p>
+                            <p class="text-[10px] text-gray-400">남은 시간 12:45</p>
+                        </div>
+                    </div>
+                    <button onclick="openModal('일산도비')" class="bg-primary hover:bg-primary-hover text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors">참여하기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 고정 액션 버튼 -->
+        <div class="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-100 flex gap-2">
+            <button onclick="alert('일반 구매가 진행됩니다. (29,800원)')" class="w-1/3 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl text-sm">혼자구매</button>
+            <button onclick="openModal('새로운')" class="w-2/3 bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl text-sm shadow-lg transition-all flex flex-col items-center justify-center">
+                <span>2인 공구 열기</span>
+                <span class="text-[10px] text-primary-light font-normal">14,900원 (친구초대 가능)</span>
+            </button>
+        </div>
+
+        <!-- [결제 신청 모달] -->
+        <div id="payment-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-end justify-center z-50">
+            <div class="bg-white w-full max-w-md rounded-t-2xl p-6 transition-all transform translate-y-0">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="text-lg font-bold text-gray-800"><span id="modal-user-name"></span> 공구 신청</h4>
+                    <button onclick="closeModal()" class="text-gray-400 text-xl font-bold">&times;</button>
+                </div>
+                
+                <div class="bg-yellow-50 border border-yellow-200 p-3 rounded-lg mb-4 text-xs text-yellow-800">
+                    💡 <strong>카카오싱크 자동 입력 배송지:</strong><br>
+                    [12345] 서울시 마포구 독막로 567 (기본 배송지)
+                </div>
+
+                <div class="border-t border-b py-3 my-4 space-y-2 text-sm text-gray-600">
+                    <div class="flex justify-between"><span>상품 금액</span><span>14,900원</span></div>
+                    <div class="flex justify-between"><span>배송비</span><span class="text-green-600">0원 (공구특가 무료배송)</span></div>
+                    <div class="flex justify-between font-bold text-gray-800"><span>최종 결제 금액</span><span class="text-primary">14,900원</span></div>
+                </div>
+
+                <!-- 🛠️ 변경: 결제 처리 함수(processPayment)로 연결 -->
+                <button onclick="processPayment()" class="w-full bg-yellow-400 hover:bg-yellow-500 text-yellow-900 font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-2">
+                    🟡 카카오페이로 1초 결제하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 🎉 [옵션 B 추가]: 매칭 성공 축하 모달 (중앙 팝업) -->
+        <div id="success-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white w-full max-w-sm rounded-2xl p-6 text-center transform scale-100 transition-all shadow-2xl relative overflow-hidden">
+                <!-- 폭죽 장식 데코 효과 -->
+                <div class="absolute -top-6 -left-6 text-3xl opacity-15 rotate-12">🎉✨</div>
+                <div class="absolute -bottom-6 -right-6 text-3xl opacity-15 -rotate-12">🎉✨</div>
+
+                <!-- 아이콘 영역 (테마색 연동) -->
+                <div class="w-16 h-16 bg-primary-light rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-3xl">🎁</span>
+                </div>
+
+                <!-- 동적 텍스트 영역 -->
+                <h3 id="success-title" class="text-xl font-black text-gray-800 mb-2"></h3>
+                <p id="success-desc" class="text-sm text-gray-500 leading-relaxed mb-6"></p>
+
+                <!-- 액션 버튼 -->
+                <div class="space-y-2">
+                    <button id="success-action-btn" class="w-full bg-primary hover:bg-primary-hover text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md">
+                        확인
+                    </button>
+                    <button onclick="closeSuccessModal()" class="w-full text-xs text-gray-400 font-medium py-2 hover:text-gray-600 transition-colors">
+                        창 닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 간단한 인터랙션을 위한 자바스크립트 -->
+    <script>
+        // 현재 사용자가 선택 중인 방의 이름 저장용 변수
+        let activeRoomName = '';
+
+        // 타임딜 실시간 타이머 작동
+        let time = 86399;
+        const timerEl = document.getElementById('timer');
+        setInterval(() => {
+            if(time > 0) {
+                time--;
+                const hours = String(Math.floor(time / 3600)).padStart(2, '0');
+                const minutes = String(Math.floor((time % 3600) / 60)).padStart(2, '0');
+                const seconds = String(time % 60).padStart(2, '0');
+                timerEl.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }, 1000);
+
+        // 모달 제어 함수
+        function openModal(userName) {
+            activeRoomName = userName; // 선택된 방 이름 기록
+            document.getElementById('modal-user-name').innerText = userName === '새로운' ? '새로운 2인' : `'${userName}'님 방`;
+            const modal = document.getElementById('payment-modal');
+            modal.classList.remove('hidden');
+        }
+        function closeModal() {
+            document.getElementById('payment-modal').classList.add('hidden');
+        }
+
+        // 🎉 [옵션 B 추가]: 결제 진행 및 결과 팝업 동적 노출
+        function processPayment() {
+            // 1. 기존 결제창 닫기
+            closeModal();
+
+            const successModal = document.getElementById('success-modal');
+            const successTitle = document.getElementById('success-title');
+            const successDesc = document.getElementById('success-desc');
+            const successBtn = document.getElementById('success-action-btn');
+
+            // 2. 어떤 루트로 들어왔냐에 따라 결과 팝업 내용 변경
+            if (activeRoomName === '새로운') {
+                // 방을 새로 파서 대기 상태가 된 경우
+                successTitle.innerHTML = '공구방 개설 완료! 🎉';
+                successDesc.innerHTML = '나만의 2인 공구방이 성공적으로 열렸습니다.<br><span class="text-primary font-bold">24시간 내에</span> 친구가 참여하면 반값 혜택이 즉시 최종 승인됩니다!';
+                successBtn.textContent = '🟡 카카오톡으로 초대 링크 공유';
+                successBtn.onclick = function() {
+                    alert('클립보드에 나만의 초대 링크가 복사되었습니다!\n친구에게 공유해서 2인 공구를 완성해 보세요.');
+                    closeSuccessModal();
+                };
+            } else {
+                // 남이 열어둔 방에 들어가서 즉시 매칭 완료된 경우
+                successTitle.innerHTML = '공동구매 매칭 성공! 🥳';
+                successDesc.innerHTML = `<span class="text-primary font-bold">'${activeRoomName}'</span> 님과의 2인 공구가 즉시 완성되었습니다!<br>지금 바로 공장으로 즉시 발주서가 전송되어 배송 처리가 시작됩니다.`;
+                successBtn.textContent = '📦 나의 실시간 배송 내역 보기';
+                successBtn.onclick = function() {
+                    alert('마이페이지 주문/배송 조회 메뉴로 이동합니다.');
+                    closeSuccessModal();
+                };
+            }
+
+            // 3. 축하 모달 띄우기
+            successModal.classList.remove('hidden');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        // 테마 변경 함수
+        function setTheme(themeName) {
+            if (themeName === 'default') {
+                document.documentElement.removeAttribute('data-theme');
+            } else {
+                document.documentElement.setAttribute('data-theme', themeName);
+            }
+        }
+
+        // 찜하기 토글 함수
+        function toggleLike() {
+            const likeBtn = document.getElementById('like-btn');
+            if (likeBtn.textContent.trim() === '🤍') {
+                likeBtn.textContent = '❤️';
+                likeBtn.classList.remove('text-gray-300');
+                likeBtn.classList.add('text-red-500');
+                alert('관심 상품에 등록되었습니다! ❤️');
+            } else {
+                likeBtn.textContent = '🤍';
+                likeBtn.classList.remove('text-red-500');
+                likeBtn.classList.add('text-gray-300');
+            }
+        }
+    </script>
+</body>
+</html>
