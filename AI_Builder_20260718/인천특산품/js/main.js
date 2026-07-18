@@ -210,7 +210,7 @@
   fetch('kakaomap.env', { cache: 'no-store' })
     .then(function (r) { if (!r.ok) throw new Error('env not found'); return r.text(); })
     .then(function (txt) {
-      var m = txt.match(/^\s*KAKAO_MAP_KEY\s*=\s*(.+)\s*$/m);
+      var m = txt.match(/^\s*KAKAO_MAP(?:_API)?_KEY\s*=\s*(.+)\s*$/m);
       var key = m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
       if (!key || /여기에|YOUR|placeholder/i.test(key)) {
         showMsg('<b>카카오맵 키가 필요합니다.</b><br>' +
